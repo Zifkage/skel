@@ -10,6 +10,7 @@
     "fix": "eslint src --fix",
     "lint": "eslint src",
     "precommit": "yarn run lint",
+    "test:e2e": "npx cucumber-js spec/cucumber/features --require-module @babel/register --require spec/cucumber/steps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,6 +28,8 @@
     "@babel/core": "^7.1.2",
     "@babel/node": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
+    "@babel/register": "^7.0.0",
+    "cucumber": "^5.0.2",
     "eslint": "^5.8.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
