@@ -71,6 +71,18 @@ app.post('/users', (req, res) => {
     res.json({
       message: 'The "Content-Type" header must always be "application/json"',
     });
+    return;
+  }
+
+  if (
+    !Object.prototype.hasOwnProperty.call(req.body, 'email') ||
+    !Object.prototype.hasOwnProperty.call(req.body, 'password')
+  ) {
+    res.status(400);
+    res.set('Content-Type', 'application/json');
+    res.json({
+      message: 'Payload must contain at least the email and password fields',
+    });
   }
 });
 
