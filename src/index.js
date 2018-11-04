@@ -96,6 +96,13 @@ app.post('/users', (req, res) => {
     });
     return;
   }
+
+  if (!/^[\w.+]+@\w+\.\w+$/.test(req.body.email)) {
+    res.status(400);
+    res.set('Content-Type', 'application/json');
+    res.json({ message: 'The email field must be a valid email.' });
+    return;
+  }
 });
 
 /* eslint-disable */
