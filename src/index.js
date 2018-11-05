@@ -1,6 +1,13 @@
 import '@babel/polyfill';
 import express from 'express';
 import bodyParser from 'body-parser';
+import elasticsearch from 'elasticsearch';
+
+const client = new elasticsearch.Client({
+  host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
+    process.env.ELASTICSEARCH_HOSTNAME
+  }:${process.env.ELASTICSEARCH_PORT}`,
+});
 
 const app = express();
 
@@ -103,6 +110,22 @@ app.post('/users', (req, res) => {
     res.json({ message: 'The email field must be a valid email.' });
     return;
   }
+
+  client
+    .index({
+      index: 'hobnob',
+      type: 'user',
+      body: req.body,
+    })
+    .then((result) => {
+      res.status(201);
+      res.set('Content-Type', 'text/plain');
+      res.send(result._id);
+    })
+    .catch(() => {
+      res.status(500);
+      res.json({ message: 'Internal Server Error' });
+    });
 });
 
 /* eslint-disable */

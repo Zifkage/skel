@@ -1,8 +1,15 @@
 import superagent from 'superagent';
 import { When, Then } from 'cucumber';
 import assert from 'assert';
+import elasticsearch from 'elasticsearch';
 
 import { getValidPayload, convertStringToArray } from './utils';
+
+const client = new elasticsearch.Client({
+  host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
+    process.env.ELASTICSEARCH_HOSTNAME
+  }:${process.env.ELASTICSEARCH_PORT}`,
+});
 
 When(
   /^the client creates a (GET|POST|PATCH|PUT|DELETE|OPTIONS|HEAD) request to ([/\w-:.]+)$/,
@@ -51,19 +58,33 @@ Then(/^our API should respond with a ([1-5]\d{2}) HTTP status code$/, function(
   assert.equal(this.response.statusCode, statusCode);
 });
 
-Then(/^the payload of the response should be a JSON object$/, function() {
+Then(/^the payload of the response should be an? ([a-zA-Z0-9, ]+)$/, function(
+  payloadType,
+) {
   // Check Content-Type header
   const contentType =
     this.response.headers['Content-Type'] ||
     this.response.headers['content-type'];
-  if (!contentType || !contentType.includes('application/json')) {
-    throw new Error('Response not of Content-Type application/json');
-  }
 
-  try {
-    this.responsePayload = JSON.parse(this.response.text);
-  } catch (e) {
-    throw new Error('Response not a valid JSON object');
+  if (payloadType === 'JSON object') {
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Response not of Content-Type application/json');
+    }
+
+    try {
+      this.responsePayload = JSON.parse(this.response.text);
+    } catch (e) {
+      throw new Error('Response not a valid JSON object');
+    }
+  } else if (payloadType === 'string') {
+    if (!contentType || !contentType.includes('text/plain')) {
+      throw new Error('Response not of Content-Type text/plain');
+    }
+
+    this.responsePayload = this.response.text;
+    if (typeof this.responsePayload !== 'string') {
+      throw new Error('Response is not a string');
+    }
   }
 });
 
@@ -128,3 +149,42 @@ When(
       .set('Content-Type', 'application/json');
   },
 );
+
+When(/^attaches a valid (.+) payload$/, function(payloadType) {
+  this.requestPayload = getValidPayload(payloadType);
+  this.request
+    .send(JSON.stringify(this.requestPayload))
+    .set('Content-Type', 'application/json');
+});
+
+Then(
+  /^the payload object should be added to the database, grouped under the "([a-zA-Z]+)" type$/,
+  function(type, callback) {
+    this.type = type;
+    client
+      .get({
+        index: 'hobnob',
+        type,
+        id: this.responsePayload,
+      })
+      .then((result) => {
+        assert.deepEqual(result._source, this.requestPayload);
+        callback();
+      })
+      .catch(callback);
+  },
+);
+
+Then('the newly-created user should be deleted', function(callback) {
+  client
+    .delete({
+      index: 'hobnob',
+      type: this.type,
+      id: this.responsePayload,
+    })
+    .then(function(res) {
+      assert.equal(res.result, 'deleted');
+      callback();
+    })
+    .catch(callback);
+});
