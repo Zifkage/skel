@@ -163,7 +163,7 @@ Then(
     this.type = type;
     client
       .get({
-        index: 'hobnob',
+        index: process.env.ELASTICSEARCH_INDEX,
         type,
         id: this.responsePayload,
       })
@@ -178,7 +178,7 @@ Then(
 Then('the newly-created user should be deleted', function(callback) {
   client
     .delete({
-      index: 'hobnob',
+      index: process.env.ELASTICSEARCH_INDEX,
       type: this.type,
       id: this.responsePayload,
     })
