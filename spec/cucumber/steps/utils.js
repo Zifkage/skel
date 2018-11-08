@@ -3,8 +3,8 @@ function getValidPayload(type) {
   switch (lowercaseType) {
     case 'create user':
       return {
-        email: 'e@m.il',
-        password: 'password',
+        email: 'nazif@bara.il',
+        password: 'password'
       };
     default:
       return undefined;
@@ -14,8 +14,8 @@ function getValidPayload(type) {
 function convertStringToArray(string) {
   return string
     .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s !== '');
+    .map(s => s.trim())
+    .filter(s => s !== '');
 }
 
 export { getValidPayload, convertStringToArray };

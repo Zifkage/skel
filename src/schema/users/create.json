@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "http://www.zifkage.com/create.json",
+  "title": "Create User Schema",
+  "description": "For validating client-provided create user object",
+  "type": "object",
+  "properties": {
+    "password": { "type": "string" },
+    "profile": { "$ref": "profile.json#" },
+    "email": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "required": ["email", "password"],
+  "additionalProperties": false
+}

@@ -8,7 +8,7 @@ import { getValidPayload, convertStringToArray } from './utils';
 const client = new elasticsearch.Client({
   host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
     process.env.ELASTICSEARCH_HOSTNAME
-  }:${process.env.ELASTICSEARCH_PORT}`,
+  }:${process.env.ELASTICSEARCH_PORT}`
 });
 
 When(
@@ -16,9 +16,9 @@ When(
   function(method, path) {
     this.request = superagent(
       method,
-      `${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}${path}`,
+      `${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}${path}`
     );
-  },
+  }
 );
 
 When(/^attaches a generic (.+) payload$/, function(payloadType) {
@@ -31,7 +31,7 @@ When(/^attaches a generic (.+) payload$/, function(payloadType) {
     case 'non-JSON':
       this.request
         .send(
-          '<?xml version="1.0" encoding="UTF-8" ?><email>dan@danyll.com</email>',
+          '<?xml version="1.0" encoding="UTF-8" ?><email>dan@danyll.com</email>'
         )
         .set('Content-Type', 'text/xml');
       break;
@@ -42,24 +42,24 @@ When(/^attaches a generic (.+) payload$/, function(payloadType) {
 
 When(/^sends the request$/, function(callback) {
   this.request
-    .then((response) => {
+    .then(response => {
       this.response = response.res;
       callback();
     })
-    .catch((errResponse) => {
+    .catch(errResponse => {
       this.response = errResponse.response;
       callback();
     });
 });
 
 Then(/^our API should respond with a ([1-5]\d{2}) HTTP status code$/, function(
-  statusCode,
+  statusCode
 ) {
   assert.equal(this.response.statusCode, statusCode);
 });
 
 Then(/^the payload of the response should be an? ([a-zA-Z0-9, ]+)$/, function(
-  payloadType,
+  payloadType
 ) {
   // Check Content-Type header
   const contentType =
@@ -89,7 +89,7 @@ Then(/^the payload of the response should be an? ([a-zA-Z0-9, ]+)$/, function(
 });
 
 Then(/^contains a message property which says (?:"|')(.*)(?:"|')$/, function(
-  message,
+  message
 ) {
   assert.equal(this.responsePayload.message, message);
 });
@@ -105,11 +105,11 @@ When(
 
     const fieldsToDelete = convertStringToArray(missingFields);
 
-    fieldsToDelete.forEach((field) => delete this.requestPayload[field]);
+    fieldsToDelete.forEach(field => delete this.requestPayload[field]);
     this.request
       .send(JSON.stringify(this.requestPayload))
       .set('Content-Type', 'application/json');
-  },
+  }
 );
 
 When(
@@ -122,17 +122,17 @@ When(
     const sampleValues = {
       string: {
         is: 'string',
-        not: 10,
-      },
+        not: 10
+      }
     };
     const fieldsToModify = convertStringToArray(fields);
-    fieldsToModify.forEach((field) => {
+    fieldsToModify.forEach(field => {
       this.requestPayload[field] = sampleValues[typeKey][invertKey];
     });
     this.request
       .send(JSON.stringify(this.requestPayload))
       .set('Content-Type', 'application/json');
-  },
+  }
 );
 
 When(
@@ -141,13 +141,13 @@ When(
     this.requestPayload = getValidPayload(payloadType);
 
     const fieldsToModify = convertStringToArray(fields);
-    fieldsToModify.forEach((field) => {
+    fieldsToModify.forEach(field => {
       this.requestPayload[field] = value;
     });
     this.request
       .send(JSON.stringify(this.requestPayload))
       .set('Content-Type', 'application/json');
-  },
+  }
 );
 
 When(/^attaches a valid (.+) payload$/, function(payloadType) {
@@ -165,14 +165,14 @@ Then(
       .get({
         index: process.env.ELASTICSEARCH_INDEX,
         type,
-        id: this.responsePayload,
+        id: this.responsePayload
       })
-      .then((result) => {
+      .then(result => {
         assert.deepEqual(result._source, this.requestPayload);
         callback();
       })
       .catch(callback);
-  },
+  }
 );
 
 Then('the newly-created user should be deleted', function(callback) {
@@ -180,11 +180,16 @@ Then('the newly-created user should be deleted', function(callback) {
     .delete({
       index: process.env.ELASTICSEARCH_INDEX,
       type: this.type,
-      id: this.responsePayload,
+      id: this.responsePayload
     })
     .then(function(res) {
       assert.equal(res.result, 'deleted');
       callback();
     })
     .catch(callback);
+});
+
+When(/^attaches (.+) as the payload$/, function(payload) {
+  this.requestPayload = JSON.parse(payload);
+  this.request.send(payload).set('Content-Type', 'application/json');
 });

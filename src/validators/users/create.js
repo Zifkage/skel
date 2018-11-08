@@ -1,28 +1,22 @@
+import Ajv from 'ajv';
+import profileSchema from '../../schema/users/profile.json';
+import createUserSchema from '../../schema/users/create.json';
 import ValidatorError from '../errors/validator-error';
+import generateValidationErrorMessage from '../errors/messages';
 
 function validate(req) {
-  if (
-    !Object.prototype.hasOwnProperty.call(req.body, 'email') ||
-    !Object.prototype.hasOwnProperty.call(req.body, 'password')
-  ) {
+  const ajvValidate = new Ajv()
+    .addFormat('email', /^[\w.+]+@\w+\.\w+$/)
+    .addSchema([profileSchema, createUserSchema])
+    .compile(createUserSchema);
+  const valid = ajvValidate(req.body);
+
+  if (!valid) {
     return new ValidatorError(
-      'Payload must contain at least the email and password fields'
+      generateValidationErrorMessage(ajvValidate.errors)
     );
   }
-  if (
-    typeof req.body.email !== 'string' ||
-    typeof req.body.password !== 'string'
-  ) {
-    return new ValidatorError(
-      'The email and password fields must be of type string'
-    );
-  }
-
-  if (!/^[\w.+]+@\w+\.\w+$/.test(req.body.email)) {
-    return new ValidatorError('The email field must be a valid email.');
-  }
-
-  return undefined;
+  return true;
 }
 
 export default validate;
