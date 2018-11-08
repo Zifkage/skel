@@ -10,7 +10,8 @@
     "fix": "eslint src --fix",
     "lint": "eslint src",
     "test:e2e": "dotenv -e envs/test.env -e envs/.env ./scripts/e2e.test.sh",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:unit": "mocha 'src/**/*.test.js' --require @babel/register",
+    "test": "yarn run test:unit && yarn run test:e2e"
   },
   "repository": {
     "type": "git",
@@ -34,6 +35,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
     "husky": "^1.1.2",
+    "mocha": "^5.2.0",
     "nodemon": "^1.18.5",
     "rimraf": "^2.6.2",
     "superagent": "^4.0.0-beta.5"
