@@ -1,4 +1,4 @@
-import ValidationError from '../../validators/errors/validator-error';
+import ValidationError from '../../validators/errors/validation-error';
 import create from '../../engines/users/create';
 
 function createUser(req, res, db) {
