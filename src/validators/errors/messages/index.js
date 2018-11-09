@@ -18,8 +18,8 @@ function generateValidationErrorMessage(errors) {
       error.params.format
     }.`;
   }
-  if (error.keyword === 'additionnalProperty') {
-    return `The '${error.dataPath}' object does not support the field'${
+  if (error.keyword === 'additionalProperty') {
+    return `The '${error.dataPath}' object does not support the field '${
       error.params.additionalProperty
     }'`;
   }
