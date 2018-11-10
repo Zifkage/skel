@@ -58,12 +58,9 @@ describe('checkEmptyPayload', function() {
         });
 
         describe('should call res.status()', function() {
-          if (
-            ('once',
-            function() {
-              assert(res.status.calledOnce);
-            })
-          );
+          it('once', function() {
+            assert(res.status.calledOnce);
+          });
 
           it('with the argument 400', function() {
             assert(res.status.calledWithExactly(400));
