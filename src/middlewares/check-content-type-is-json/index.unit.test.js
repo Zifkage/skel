@@ -78,7 +78,7 @@ describe('checkContentTypeIsJson', function() {
         assert(res.json.calledOnce);
       });
 
-      it('whith the correct error message', function() {
+      it('with the correct error message', function() {
         assert(
           res.json.calledWithExactly({
             message:
