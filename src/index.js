@@ -6,8 +6,12 @@ import checkEmptyPayload from './middlewares/check-empty-payload';
 import checkContentTypeIsJson from './middlewares/check-content-type-is-json';
 import checkContentTypeIsSet from './middlewares/check-content-type-is-set';
 import errorHandler from './middlewares/error-handler';
-import createUser from './handlers/users/create';
+import createUserHandler from './handlers/users/create';
 import injectHandlerDependencies from './utils/inject-handler-dependencies';
+import ValidationError from './validators/errors/validation-error';
+import createUserEngine from './engines/users/create';
+
+const handlerToEngineMap = new Map([[createUserHandler, createUserEngine]]);
 
 const app = express();
 
@@ -29,7 +33,15 @@ app.use(checkEmptyPayload);
 app.use(checkContentTypeIsSet);
 app.use(checkContentTypeIsJson);
 
-app.post('/users', injectHandlerDependencies(createUser, client));
+app.post(
+  '/users',
+  injectHandlerDependencies(
+    createUserHandler,
+    client,
+    handlerToEngineMap,
+    ValidationError
+  )
+);
 
 app.use(errorHandler);
 

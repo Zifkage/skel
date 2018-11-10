@@ -33,30 +33,6 @@ describe('checkContentTypeIsSet', function() {
     });
   });
 
-  describe('When the content-type is set', function() {
-    let clonedRes;
-
-    beforeEach(function() {
-      req = {
-        headers: {
-          'content-type': 'application/json'
-        }
-      };
-      res = {};
-      clonedRes = deepClone(res);
-      next = spy();
-      checkContentTypeIsSet(req, res, next);
-    });
-
-    it('should not modify res', function() {
-      assert(deepEqual(res, clonedRes));
-    });
-
-    it('should call next once', function() {
-      assert(next.calledOnce);
-    });
-  });
-
   describe('When the request have a non-empty', function() {
     describe('And the content-type is set', function() {
       let clonedRes;
