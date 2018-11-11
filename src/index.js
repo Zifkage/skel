@@ -10,8 +10,12 @@ import createUserHandler from './handlers/users/create';
 import injectHandlerDependencies from './utils/inject-handler-dependencies';
 import ValidationError from './validators/errors/validation-error';
 import createUserEngine from './engines/users/create';
+import createUserValidator from './validators/users/create';
 
 const handlerToEngineMap = new Map([[createUserHandler, createUserEngine]]);
+const handlerToValidatorMap = new Map([
+  [createUserHandler, createUserValidator]
+]);
 
 const app = express();
 
@@ -39,6 +43,7 @@ app.post(
     createUserHandler,
     client,
     handlerToEngineMap,
+    handlerToValidatorMap,
     ValidationError
   )
 );

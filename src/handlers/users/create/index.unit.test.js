@@ -13,18 +13,27 @@ describe('Create User request handler', function() {
   let req;
   let res;
   let db;
+  let validator;
 
   describe("When create resolves with the new user's ID", function() {
     beforeEach(function() {
       db = {};
       req = {};
+      validator = {};
       res = {
         status: spy(),
         set: spy(),
         send: spy()
       };
 
-      return createUser(req, res, db, createStubs.success(), ValidationError);
+      return createUser(
+        req,
+        res,
+        db,
+        createStubs.success(),
+        validator,
+        ValidationError
+      );
     });
 
     describe('should call res.status() once', function() {
@@ -62,6 +71,7 @@ describe('Create User request handler', function() {
     beforeEach(function() {
       db = {};
       req = {};
+      validator = {};
       res = {
         status: spy(),
         set: spy(),
@@ -73,6 +83,7 @@ describe('Create User request handler', function() {
         res,
         db,
         createStubs.validationError(),
+        validator,
         ValidationError
       );
     });
@@ -112,6 +123,7 @@ describe('Create User request handler', function() {
     beforeEach(function() {
       db = {};
       req = {};
+      validator = {};
       res = {
         status: spy(),
         set: spy(),
@@ -123,6 +135,7 @@ describe('Create User request handler', function() {
         res,
         db,
         createStubs.otherError(),
+        validator,
         ValidationError
       );
     });

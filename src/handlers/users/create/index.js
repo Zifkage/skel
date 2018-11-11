@@ -1,5 +1,5 @@
-function createUser(req, res, db, create, ValidationError) {
-  return create(req, db)
+function createUser(req, res, db, create, validator, ValidationError) {
+  return create(req, db, validator, ValidationError)
     .then(
       result => {
         res.status(201);
@@ -16,7 +16,8 @@ function createUser(req, res, db, create, ValidationError) {
         throw new Error();
       }
     )
-    .catch(() => {
+    .catch(e => {
+      console.log(e);
       res.status(500);
       res.set('Content-Type', 'application/json');
       return res.json({ message: 'Internal Server Error' });
