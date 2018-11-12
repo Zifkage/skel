@@ -10,8 +10,9 @@
     "fix": "eslint src --fix",
     "lint": "eslint src",
     "test:e2e": "dotenv -e envs/test.env -e envs/.env ./scripts/e2e.test.sh",
-    "test:unit": "mocha 'src/**/*.test.js' --require @babel/register",
-    "test": "yarn run test:unit && yarn run test:e2e"
+    "test:unit": "mocha 'src/**/*.unit.test.js' --require @babel/register",
+    "test:integration": "dotenv -e envs/test.env -e envs/.env mocha -- src/**/*.integration.test.js --require @babel/register",
+    "test": "yarn run test:unit && yarn run test:integration && yarn run test:e2e"
   },
   "repository": {
     "type": "git",
