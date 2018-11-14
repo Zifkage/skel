@@ -7,6 +7,7 @@ import checkContentTypeIsJson from './middlewares/check-content-type-is-json';
 import checkContentTypeIsSet from './middlewares/check-content-type-is-set';
 import errorHandler from './middlewares/error-handler';
 import createUserHandler from './handlers/users/create';
+import retrieveUserHandler from './handlers/users/retrieve';
 import injectHandlerDependencies from './utils/inject-handler-dependencies';
 import ValidationError from './validators/errors/validation-error';
 import createUserEngine from './engines/users/create';
@@ -27,10 +28,6 @@ const client = new elasticsearch.Client({
   }:${process.env.ELASTICSEARCH_PORT}`
 });
 
-app.use(checkEmptyPayload);
-app.use(checkContentTypeIsSet);
-app.use(checkContentTypeIsJson);
-
 app.use(bodyParser.json({ limit: 1e6 }));
 
 app.use(checkEmptyPayload);
@@ -47,6 +44,8 @@ app.post(
     ValidationError
   )
 );
+
+app.get('/users/:userId', retrieveUserHandler);
 
 app.use(errorHandler);
 
