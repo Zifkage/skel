@@ -16,7 +16,8 @@ describe('checkContentTypeIsJson', function() {
       req = {
         headers: {
           'content-type': 'application/json'
-        }
+        },
+        method: 'POST'
       };
       res = {};
       next = spy();
@@ -41,7 +42,8 @@ describe('checkContentTypeIsJson', function() {
       req = {
         headers: {
           'content-type': 'plain/text'
-        }
+        },
+        method: 'POST'
       };
       resJsonReturnValue = {};
       res = {

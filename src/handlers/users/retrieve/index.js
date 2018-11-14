@@ -1,32 +1,25 @@
-import elasticsearch from 'elasticsearch';
+import retrieve from '../../../engines/users/retrieve';
 
-const client = elasticsearch.Client({
-  host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
-    process.env.ELASTICSEARCH_HOSTNAME
-  }:${process.env.ELASTICSEARCH_PORT}`
-});
-
-function retriveUser(req, res) {
-  client
-    .get({
-      index: process.env.ELASTICSEARCH_INDEX,
-      type: 'user',
-      id: req.params.userId
-    })
+function retrieveUser(req, res) {
+  return retrieve(req)
     .then(result => {
       res.status(200);
       res.set('Content-Type', 'application/json');
       const user = result._source;
       delete user.password;
-      res.json(user);
+      return res.json(user);
     })
     .catch(err => {
       if (err.status === 404) {
         res.status(404);
         res.set('Content-Type', 'application/json');
-        res.json({ message: 'Not found' });
+        return res.json({ message: 'Not found' });
       }
+
+      res.status(500);
+      res.set('Content-Type', 'application/json');
+      return res.json({ message: 'Internal Server Error' });
     });
 }
 
-export default retriveUser;
+export default retrieveUser;
