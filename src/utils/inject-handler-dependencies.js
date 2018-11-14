@@ -6,7 +6,10 @@ function injectHandlerDependencies(
   ValidationError
 ) {
   const engine = handlerToEngineMap.get(handler);
-  const validator = handlerToValidatorMap.get(handler);
+  const validator = handlerToValidatorMap
+    ? handlerToValidatorMap.get(handler)
+    : undefined;
+
   return (req, res) => {
     handler(req, res, db, engine, validator, ValidationError);
   };

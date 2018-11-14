@@ -1,7 +1,5 @@
-import retrieve from '../../../engines/users/retrieve';
-
-function retrieveUser(req, res) {
-  return retrieve(req)
+function retrieveUser(req, res, db, retrieve) {
+  return retrieve(req, db)
     .then(result => {
       res.status(200);
       res.set('Content-Type', 'application/json');

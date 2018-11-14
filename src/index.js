@@ -11,9 +11,13 @@ import retrieveUserHandler from './handlers/users/retrieve';
 import injectHandlerDependencies from './utils/inject-handler-dependencies';
 import ValidationError from './validators/errors/validation-error';
 import createUserEngine from './engines/users/create';
+import retrieveUserEngine from './engines/users/retrieve';
 import createUserValidator from './validators/users/create';
 
-const handlerToEngineMap = new Map([[createUserHandler, createUserEngine]]);
+const handlerToEngineMap = new Map([
+  [createUserHandler, createUserEngine],
+  [retrieveUserHandler, retrieveUserEngine]
+]);
 const handlerToValidatorMap = new Map([
   [createUserHandler, createUserValidator]
 ]);
@@ -45,7 +49,10 @@ app.post(
   )
 );
 
-app.get('/users/:userId', retrieveUserHandler);
+app.get(
+  '/users/:userId',
+  injectHandlerDependencies(retrieveUserHandler, client, handlerToEngineMap)
+);
 
 app.use(errorHandler);
 
