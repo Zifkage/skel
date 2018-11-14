@@ -3,7 +3,11 @@ import { When, Then } from 'cucumber';
 import assert from 'assert';
 import elasticsearch from 'elasticsearch';
 
-import { getValidPayload, convertStringToArray } from './utils';
+import {
+  getValidPayload,
+  convertStringToArray,
+  checkIfFieldExist
+} from './utils';
 
 const client = new elasticsearch.Client({
   host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
@@ -192,4 +196,35 @@ Then('the newly-created user should be deleted', function(callback) {
 When(/^attaches (.+) as the payload$/, function(payload) {
   this.requestPayload = JSON.parse(payload);
   this.request.send(payload).set('Content-Type', 'application/json');
+});
+
+When(/^the client request for user type payload by ID$/, function(callback) {
+  this.requestPayload = getValidPayload('create user');
+  this.request = superagent(
+    'POST',
+    `${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}/users`
+  );
+
+  this.request
+    .send(JSON.stringify(this.requestPayload))
+    .set('Content-Type', 'application/json')
+    .then(response => {
+      const responsePayload = response.res.text;
+      this.request = superagent(
+        'GET',
+        `${process.env.SERVER_HOSTNAME}:${
+          process.env.SERVER_PORT
+        }/users/${responsePayload}`
+      );
+      callback();
+    })
+    .catch(err => {
+      throw err;
+    });
+});
+
+Then(/^should not contain the ([a-zA-Z0-9, ]+) fields?$/, function(fields) {
+  fields = convertStringToArray(fields);
+  const fieldsExist = checkIfFieldExist(this.responsePayload, fields);
+  assert(!fieldsExist);
 });

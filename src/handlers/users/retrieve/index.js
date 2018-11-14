@@ -13,6 +13,13 @@ function retriveUser(req, res) {
       type: 'user',
       id: req.params.userId
     })
+    .then(result => {
+      res.status(200);
+      res.set('Content-Type', 'application/json');
+      const user = result._source;
+      delete user.password;
+      res.json(user);
+    })
     .catch(err => {
       if (err.status === 404) {
         res.status(404);

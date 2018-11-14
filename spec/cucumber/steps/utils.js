@@ -18,4 +18,13 @@ function convertStringToArray(string) {
     .filter(s => s !== '');
 }
 
-export { getValidPayload, convertStringToArray };
+function checkIfFieldExist(object, fields) {
+  let exist = false;
+  fields.forEach(field => {
+    exist = object[field] ? true : false;
+  });
+
+  return exist;
+}
+
+export { getValidPayload, convertStringToArray, checkIfFieldExist };
