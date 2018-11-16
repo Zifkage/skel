@@ -1,39 +1,29 @@
 import { stub, spy } from 'sinon';
-import ValidationError from '../../../validators/errors/validation-error';
-import createUser from '.';
+import retrieveUser from '.';
 import assert from 'assert';
 
 const createStubs = {
-  success: () => stub().resolves({ _id: 'foo' }),
-  validationError: () => stub().rejects(new ValidationError('error message')),
-  otherError: () => stub().rejects(new Error())
+  success: () =>
+    stub().resolves({ email: 'eg@kk.com', password: 'abc', profile: {} }),
+  notFoundError: () => stub().rejects({ message: 'Not Found' }),
+  otherError: () => stub().rejects(new Error('Internal Server Error'))
 };
 
-describe('Create User request handler', function() {
+describe('Retrieve User request handler', function() {
   let req;
   let res;
   let db;
-  let validator;
 
-  describe("When create resolves with the new user's ID", function() {
+  describe("When retrieve resolves with the new user's ID", function() {
     beforeEach(function() {
       db = {};
       req = {};
-      validator = {};
       res = {
         status: spy(),
         set: spy(),
-        send: spy()
+        json: spy()
       };
-
-      return createUser(
-        req,
-        res,
-        db,
-        createStubs.success(),
-        validator,
-        ValidationError
-      );
+      return retrieveUser(req, res, db, createStubs.success());
     });
 
     describe('should call res.status()', function() {
@@ -41,8 +31,8 @@ describe('Create User request handler', function() {
         assert(res.status.calledOnce);
       });
 
-      it('with the arguments 201', function() {
-        assert(res.status.calledWithExactly(201));
+      it('with the arguments 200', function() {
+        assert(res.status.calledWithExactly(200));
       });
     });
 
@@ -51,50 +41,47 @@ describe('Create User request handler', function() {
         assert(res.set.calledOnce);
       });
 
-      it('with the arguments "Content-tyoe" and "text/plain"', function() {
-        assert(res.set.calledWithExactly('Content-Type', 'text/plain'));
+      it('with the arguments "Content-Tyoe" and "application/json"', function() {
+        assert(res.set.calledWithExactly('Content-Type', 'application/json'));
       });
     });
 
-    describe('should call res.send()', function() {
+    describe('should call res.json()', function() {
       it('once', function() {
-        assert(res.send.calledOnce);
+        assert(res.json.calledOnce);
       });
 
-      it('with the user id as paramater', function() {
-        assert(res.send.calledWithExactly('foo'));
+      it('with the user object as paramater', function() {
+        assert(
+          res.json.calledWithExactly({
+            email: 'eg@kk.com',
+            password: 'abc',
+            profile: {}
+          })
+        );
       });
     });
   });
 
-  describe('When create reject with ValidationError instance', function() {
+  describe('When retrieve rejects with a not found error', function() {
     beforeEach(function() {
-      db = {};
       req = {};
-      validator = {};
       res = {
         status: spy(),
         set: spy(),
         json: spy()
       };
-
-      return createUser(
-        req,
-        res,
-        db,
-        createStubs.validationError(),
-        validator,
-        ValidationError
-      );
+      db = {};
+      return retrieveUser(req, res, db, createStubs.notFoundError());
     });
 
-    describe('should call res.status() once', function() {
+    describe('should call res.status()', function() {
       it('once', function() {
         assert(res.status.calledOnce);
       });
 
-      it('with the arguments 400', function() {
-        assert(res.status.calledWithExactly(400));
+      it('with the arguments 404', function() {
+        assert(res.status.calledWithExactly(404));
       });
     });
 
@@ -113,34 +100,29 @@ describe('Create User request handler', function() {
         assert(res.json.calledOnce);
       });
 
-      it('with the correct error object', function() {
-        assert(res.json.calledWithExactly({ message: 'error message' }));
+      it('with the user object as paramater', function() {
+        assert(
+          res.json.calledWithExactly({
+            message: 'Not Found'
+          })
+        );
       });
     });
   });
 
-  describe('When create catch other error', function() {
+  describe('When retrieve rejects with a internal server error', function() {
     beforeEach(function() {
-      db = {};
       req = {};
-      validator = {};
       res = {
         status: spy(),
         set: spy(),
         json: spy()
       };
-
-      return createUser(
-        req,
-        res,
-        db,
-        createStubs.otherError(),
-        validator,
-        ValidationError
-      );
+      db = {};
+      return retrieveUser(req, res, db, createStubs.otherError());
     });
 
-    describe('should call res.status() once', function() {
+    describe('should call res.status()', function() {
       it('once', function() {
         assert(res.status.calledOnce);
       });
@@ -165,9 +147,11 @@ describe('Create User request handler', function() {
         assert(res.json.calledOnce);
       });
 
-      it('with the correct error object', function() {
+      it('with the user object as paramater', function() {
         assert(
-          res.json.calledWithExactly({ message: 'Internal Server Error' })
+          res.json.calledWithExactly({
+            message: 'Internal Server Error'
+          })
         );
       });
     });

@@ -3,20 +3,18 @@ function retrieveUser(req, res, db, retrieve) {
     .then(result => {
       res.status(200);
       res.set('Content-Type', 'application/json');
-      const user = result._source;
-      delete user.password;
-      return res.json(user);
+      return res.json(result);
     })
     .catch(err => {
-      if (err.status === 404) {
+      if (err.message === 'Not Found') {
         res.status(404);
         res.set('Content-Type', 'application/json');
-        return res.json({ message: 'Not found' });
+        return res.json({ message: err.message });
       }
 
       res.status(500);
       res.set('Content-Type', 'application/json');
-      return res.json({ message: 'Internal Server Error' });
+      return res.json({ message: err.message });
     });
 }
 
