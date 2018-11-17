@@ -4,8 +4,6 @@ import ValidationError from '../../../validators/errors/validation-error';
 import createUserValidator from '../../../validators/users/create';
 import create from '.';
 
-console.log(process.env.ELASTICSEARCH_HOSTNAME);
-
 const db = new elasticsearch.Client({
   host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
     process.env.ELASTICSEARCH_HOSTNAME
