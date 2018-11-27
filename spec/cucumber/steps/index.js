@@ -1,26 +1,35 @@
 import superagent from 'superagent';
 import { When, Then } from 'cucumber';
 import assert from 'assert';
-import elasticsearch from 'elasticsearch';
+import db from '../../../src/models';
+import mongoose from 'mongoose';
 
 import {
   getValidPayload,
   convertStringToArray,
-  checkIfFieldExist
+  checkIfFieldExist,
+  processPath
 } from './utils';
 
-const client = new elasticsearch.Client({
-  host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
-    process.env.ELASTICSEARCH_HOSTNAME
-  }:${process.env.ELASTICSEARCH_PORT}`
-});
+mongoose.Promise = global.Promise;
+mongoose.connect(
+  `${process.env.MONGODB_PROTOCOL}://${process.env.MONGODB_USER}:${
+    process.env.MONGODB_PASSWORD
+  }@${process.env.MONGODB_HOSTNAME}:${process.env.MONGODB_PORT}/${
+    process.env.MONGODB_DBNAME
+  }`,
+  { useNewUrlParser: true }
+);
 
 When(
   /^the client creates a (GET|POST|PATCH|PUT|DELETE|OPTIONS|HEAD) request to ([/\w-:.]+)$/,
   function(method, path) {
+    const processedPath = processPath(this.context, path);
     this.request = superagent(
       method,
-      `${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}${path}`
+      `${process.env.SERVER_HOSTNAME}:${
+        process.env.SERVER_PORT
+      }${processedPath}`
     );
   }
 );
@@ -44,7 +53,7 @@ When(/^attaches a generic (.+) payload$/, function(payloadType) {
   }
 });
 
-When(/^sends the request$/, function(callback) {
+When(/^sends the request$/, { timeout: 80 * 1000 }, function(callback) {
   this.request
     .then(response => {
       this.response = response.res;
@@ -161,33 +170,21 @@ When(/^attaches a valid (.+) payload$/, function(payloadType) {
     .set('Content-Type', 'application/json');
 });
 
-Then(
-  /^the payload object should be added to the database, grouped under the "([a-zA-Z]+)" type$/,
-  function(type, callback) {
-    this.type = type;
-    client
-      .get({
-        index: process.env.ELASTICSEARCH_INDEX,
-        type,
-        id: this.responsePayload
-      })
-      .then(result => {
-        assert.deepEqual(result._source, this.requestPayload);
-        callback();
-      })
-      .catch(callback);
-  }
-);
+Then(/^the payload object should be added to the database$/, function(
+  callback
+) {
+  db.User.findById(this.responsePayload)
+    .then(result => {
+      assert.deepEqual(String(result._id), this.responsePayload);
+      callback();
+    })
+    .catch(callback);
+});
 
 Then('the newly-created user should be deleted', function(callback) {
-  client
-    .delete({
-      index: process.env.ELASTICSEARCH_INDEX,
-      type: this.type,
-      id: this.responsePayload
-    })
-    .then(function(res) {
-      assert.equal(res.result, 'deleted');
+  db.User.deleteOne({ _id: this.responsePayload })
+    .then(function(result) {
+      assert.equal(result.n, 1);
       callback();
     })
     .catch(callback);
@@ -227,4 +224,17 @@ Then(/^should not contain the ([a-zA-Z0-9, ]+) fields?$/, function(fields) {
   fields = convertStringToArray(fields);
   const fieldsExist = checkIfFieldExist(this.responsePayload, fields);
   assert(!fieldsExist);
+});
+
+When(/^saves the response text in the this.context under ([\w.]+)$/, function(
+  contextPath
+) {
+  this.context[contextPath] = this.response.text;
+});
+
+When(/^saves the response text in the context under ([:\w.]+)$/, function(
+  contextPath
+) {
+  this.context = {};
+  this.context[contextPath] = this.response.text;
 });

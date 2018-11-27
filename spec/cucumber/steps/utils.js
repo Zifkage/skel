@@ -27,4 +27,19 @@ function checkIfFieldExist(object, fields) {
   return exist;
 }
 
-export { getValidPayload, convertStringToArray, checkIfFieldExist };
+function processPath(context, path) {
+  const contextPaths = path.match(/:\w+(?=\/?)/g);
+  if (!contextPaths) return path;
+  for (let i = 0; i < contextPaths.length; i++) {
+    path = path.replace(/:\w+(?=\/?)/, context[contextPaths[i]]);
+  }
+
+  return path;
+}
+
+export {
+  getValidPayload,
+  convertStringToArray,
+  checkIfFieldExist,
+  processPath
+};

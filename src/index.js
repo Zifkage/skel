@@ -9,27 +9,31 @@ import errorHandler from './middlewares/error-handler';
 import createUserHandler from './handlers/users/create';
 import retrieveUserHandler from './handlers/users/retrieve';
 import injectHandlerDependencies from './utils/inject-handler-dependencies';
-import ValidationError from './validators/errors/validation-error';
 import createUserEngine from './engines/users/create';
 import retrieveUserEngine from './engines/users/retrieve';
-import createUserValidator from './validators/users/create';
+import generateErrorMessage from './system-messages/errors';
+import mongoose from 'mongoose';
+import db from './models';
 
 const handlerToEngineMap = new Map([
   [createUserHandler, createUserEngine],
   [retrieveUserHandler, retrieveUserEngine]
 ]);
-const handlerToValidatorMap = new Map([
-  [createUserHandler, createUserValidator]
-]);
 
 const app = express();
 
-import elasticsearch from 'elasticsearch';
-
-const client = new elasticsearch.Client({
-  host: `${process.env.ELASTICSEARCH_PROTOCOLE}://${
-    process.env.ELASTICSEARCH_HOSTNAME
-  }:${process.env.ELASTICSEARCH_PORT}`
+// Connection to mlab
+mongoose.Promise = global.Promise;
+mongoose.connect(
+  `${process.env.MONGODB_PROTOCOL}://${process.env.MONGODB_USER}:${
+    process.env.MONGODB_PASSWORD
+  }@${process.env.MONGODB_HOSTNAME}:${process.env.MONGODB_PORT}/${
+    process.env.MONGODB_DBNAME
+  }`,
+  { useNewUrlParser: true }
+);
+mongoose.connection.on('error', () => {
+  throw new Error('Unable to connect to database!');
 });
 
 app.use(bodyParser.json({ limit: 1e6 }));
@@ -42,16 +46,20 @@ app.post(
   '/users',
   injectHandlerDependencies(
     createUserHandler,
-    client,
+    db,
     handlerToEngineMap,
-    handlerToValidatorMap,
-    ValidationError
+    generateErrorMessage
   )
 );
 
 app.get(
   '/users/:userId',
-  injectHandlerDependencies(retrieveUserHandler, client, handlerToEngineMap)
+  injectHandlerDependencies(
+    retrieveUserHandler,
+    db,
+    handlerToEngineMap,
+    generateErrorMessage
+  )
 );
 
 app.use(errorHandler);

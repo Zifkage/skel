@@ -1,12 +1,14 @@
-function create(req, db, validate, ValidationError) {
-  const validationResults = validate(req);
-  if (validationResults instanceof ValidationError) {
-    return Promise.reject(validationResults);
-  }
-  return db.index({
-    index: process.env.ELASTICSEARCH_INDEX,
-    type: 'user',
-    body: req.body
+function create(req, db, generateErrorMessage) {
+  var user = new db.User(req.body);
+
+  return new Promise((resolve, reject) => {
+    user.save(function(err, user) {
+      if (err) {
+        err.message = generateErrorMessage(err);
+        reject(err);
+      }
+      resolve(user);
+    });
   });
 }
 
